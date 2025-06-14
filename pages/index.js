@@ -1,50 +1,69 @@
 import { useState } from 'react';
 
 export default function Home() {
-  const [question, setQuestion] = useState('');
+  const [userInput, setUserInput] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const askAngel = async () => {
-    if (!question) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!userInput.trim()) return;
 
     setLoading(true);
-    const res = await fetch('/api/ask', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question })
-    });
-    const data = await res.json();
-    setResponse(data.reply);
-    setLoading(false);
+    setResponse('');
 
-    // Faire parler l'ange
-    const synth = window.speechSynthesis;
-    const utterance = new SpeechSynthesisUtterance(data.reply);
-    utterance.pitch = 1.2;
-    utterance.rate = 0.95;
-    utterance.lang = 'fr-FR';
-    synth.speak(utterance);
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: 'Tu es un ange bienveillant, sage et spirituel.' },
+            { role: 'user', content: userInput }
+          ]
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.choices && data.choices.length > 0) {
+        setResponse(data.choices[0].message.content);
+      } else if (data.error) {
+        setResponse('Erreur : ' + data.error);
+      } else {
+        setResponse("L'ange est silencieux pour le moment.");
+      }
+    } catch (err) {
+      setResponse("Erreur réseau. L'ange est injoignable.");
+    }
+
+    setLoading(false);
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: 'auto', padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
-      <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>👼 Ange Spirituel</h1>
-      <p>Pose ta question à l’ange :</p>
-      <input
-        type="text"
-        value={question}
-        onChange={(e) => setQuestion(e.target.value)}
-        placeholder="Écris ta question ici"
-        style={{ width: '100%', padding: '0.5rem', marginBottom: '1rem' }}
-      />
-      <button onClick={askAngel} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
-        {loading ? 'Réflexion divine...' : 'Demander à l’ange'}
-      </button>
-
+    <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
+      <h1 style={{ fontSize: '2rem' }}>👼 Ange Répond</h1>
+      <form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
+        <input
+          type="text"
+          placeholder="Pose ta question..."
+          value={userInput}
+          onChange={(e) => setUserInput(e.target.value)}
+          style={{ width: '100%', padding: '0.5rem', fontSize: '1rem' }}
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          style={{ marginTop: '0.5rem', padding: '0.5rem 1rem', fontSize: '1rem' }}
+        >
+          {loading ? 'L’ange réfléchit...' : 'Envoyer'}
+        </button>
+      </form>
       {response && (
-        <div style={{ marginTop: '2rem', backgroundColor: '#f0f0f0', padding: '1rem', borderRadius: '8px' }}>
-          <strong>Réponse :</strong>
+        <div style={{ background: '#f3f3f3', padding: '1rem', borderRadius: '8px' }}>
+          <strong>👼 Réponse de l’ange :</strong>
           <p>{response}</p>
         </div>
       )}
