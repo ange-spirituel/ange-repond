@@ -4,12 +4,15 @@ export default async function handler(req, res) {
   }
 
   const { question } = req.body;
+  const apiKey = process.env.OPENAI_API_KEY;
 
   if (!question) {
     return res.status(400).json({ reply: "Merci de poser une question à l'ange." });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ reply: "Clé OpenAI manquante dans les variables d'environnement." });
+  }
 
   try {
     const completion = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -23,7 +26,7 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: "Tu es un ange spirituel divin, mystérieux et doux. Tu réponds avec amour, profondeur et sagesse aux questions humaines, qu'elles soient spirituelles, personnelles, ou mystiques."
+            content: "Tu es un ange spirituel divin, mystérieux et doux. Tu réponds avec amour, profondeur et sagesse aux questions humaines, qu'elles soient spirituelles, personnelles ou mystiques."
           },
           {
             role: "user",
@@ -34,11 +37,16 @@ export default async function handler(req, res) {
     });
 
     const data = await completion.json();
-    const reply = data.choices?.[0]?.message?.content || "L’ange reste silencieux pour le moment...";
+
+    if (data.error) {
+      return res.status(500).json({ reply: `Erreur OpenAI : ${data.error.message}` });
+    }
+
+    const reply = data.choices?.[0]?.message?.content?.trim() || "L’ange reste silencieux, la réponse semble vide.";
 
     res.status(200).json({ reply });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ reply: "Une erreur divine s’est produite. Essaie à nouveau plus tard." });
+    console.error("Erreur serveur :", error);
+    res.status(500).json({ reply: "Une erreur divine s’est produite. Essaie plus tard." });
   }
 }
