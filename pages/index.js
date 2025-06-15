@@ -70,3 +70,20 @@ export default function Home() {
     </div>
   );
 }
+
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe('pk_live_...'); // Ta clé publique
+
+async function handleCheckout() {
+  const res = await fetch('/api/checkout', {
+    method: 'POST',
+  });
+  const data = await res.json();
+
+  const stripe = await stripePromise;
+  stripe.redirectToCheckout({ sessionId: data.id });
+}
+<button onClick={handleCheckout}>
+  Poser une question (1€)
+</button>
