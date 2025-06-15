@@ -1,8 +1,8 @@
 export default async function handler(req, res) {
-  const { question, language } = req.body;
+  const { question } = req.body;
 
   if (!question) {
-    return res.status(400).json({ error: "Question manquante." });
+    return res.status(400).json({ error: "Missing question." });
   }
 
   try {
@@ -13,16 +13,17 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-3.5-turbo",
         messages: [
           {
             role: "system",
-            content: language === "fr"
-              ? "Tu es un ange bienveillant qui répond en français avec sagesse et douceur."
-              : "You are a benevolent angel who answers in English with wisdom and kindness."
+            content: "You are a benevolent angel who responds wisely in English or French."
           },
-          { role: "user", content: question },
-        ],
+          {
+            role: "user",
+            content: question
+          }
+        ]
       }),
     });
 
@@ -30,7 +31,7 @@ export default async function handler(req, res) {
     const message = data.choices?.[0]?.message?.content;
     res.status(200).json({ response: message });
   } catch (error) {
-    console.error("Erreur AI:", error);
-    res.status(500).json({ error: "Erreur lors de la réponse de l'ange." });
+    console.error("AI Error:", error);
+    res.status(500).json({ error: "Angel failed to respond." });
   }
 }
