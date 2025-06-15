@@ -18,6 +18,15 @@ export default function Home() {
 
     if (res.ok) {
       setResponse(data.response);
+      // Fait parler l'ange avec une voix douce
+const utterance = new SpeechSynthesisUtterance(data.response);
+utterance.lang = "fr-FR"; // ou "en-US" selon la langue
+utterance.pitch = 1.2; // ton un peu plus haut
+utterance.rate = 0.95; // vitesse un peu lente
+utterance.voice = speechSynthesis.getVoices().find(voice => voice.name.includes("Google") || voice.lang === "fr-FR");
+
+speechSynthesis.speak(utterance);
+
     } else {
       setResponse(`❌ Erreur : ${data.error || "Erreur inconnue."}`);
     }
