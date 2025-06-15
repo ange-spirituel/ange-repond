@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   const { question } = req.body;
 
   if (!question) {
-    return res.status(400).json({ error: "Question manquante." });
+    return res.status(400).json({ error: "❌ Question manquante." });
   }
 
   try {
@@ -13,11 +13,11 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo", // ou "gpt-4" si tu as l'accès
+        model: "gpt-3.5-turbo",
         messages: [
           {
             role: "system",
-            content: "Tu es un ange bienveillant et mystérieux qui répond avec sagesse aux humains.",
+            content: "Tu es un ange mystérieux et bienveillant, tu réponds avec sagesse.",
           },
           {
             role: "user",
@@ -29,15 +29,15 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    if (data.error) {
-      console.error("Erreur OpenAI :", data.error);
-      return res.status(500).json({ error: data.error.message });
+    if (!response.ok) {
+      console.error("❌ Erreur OpenAI:", data);
+      return res.status(500).json({ error: data.error?.message || "Erreur de l’IA." });
     }
 
     const message = data.choices?.[0]?.message?.content;
-    res.status(200).json({ response: message });
+    return res.status(200).json({ response: message });
   } catch (error) {
-    console.error("Erreur AI:", error);
-    res.status(500).json({ error: "Erreur lors de la réponse de l'ange." });
+    console.error("❌ Erreur serveur:", error);
+    return res.status(500).json({ error: "Erreur serveur inconnue." });
   }
 }
