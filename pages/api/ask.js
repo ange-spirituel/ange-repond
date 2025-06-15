@@ -13,22 +13,27 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-3.5-turbo", // ou "gpt-4" si tu as l'accès
         messages: [
           {
             role: "system",
-            content:
-              "Tu es un ange bienveillant, mystérieux, qui répond avec sagesse en français ou en anglais selon la question."
+            content: "Tu es un ange bienveillant et mystérieux qui répond avec sagesse aux humains.",
           },
           {
             role: "user",
-            content: question
-          }
-        ]
+            content: question,
+          },
+        ],
       }),
     });
 
     const data = await response.json();
+
+    if (data.error) {
+      console.error("Erreur OpenAI :", data.error);
+      return res.status(500).json({ error: data.error.message });
+    }
+
     const message = data.choices?.[0]?.message?.content;
     res.status(200).json({ response: message });
   } catch (error) {
