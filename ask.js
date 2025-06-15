@@ -1,12 +1,9 @@
+
 export default async function handler(req, res) {
-  const { question, creditsUsed } = req.body;
+  const { question } = req.body;
 
   if (!question) {
     return res.status(400).json({ error: "Question manquante." });
-  }
-
-  if (creditsUsed > 6) {
-    return res.status(403).json({ error: "Plus de crédits disponibles." });
   }
 
   try {
@@ -17,9 +14,9 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-3.5-turbo",
         messages: [
-          { role: "system", content: "Tu es un ange bienveillant, mystérieux, qui répond avec sagesse en français ou en anglais selon la question." },
+          { role: "system", content: "Tu es une voix angélique et féminine, bienveillante." },
           { role: "user", content: question },
         ],
       }),
