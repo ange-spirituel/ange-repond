@@ -13,12 +13,20 @@ export default function Home() {
     setResponse('');
 
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+      const res = await fetch("/api/ask", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ question }),
+});
+
+const data = await res.json();
+
+if (res.ok) {
+  setResponse(data.response);
+} else {
+  console.error("Erreur côté serveur :", data);
+  setResponse("❌ Erreur : " + (data.error || "Impossible d’obtenir la réponse de l’ange."));
+}
           messages: [
             { role: 'system', content: 'Tu es un ange bienveillant, sage et spirituel.' },
             { role: 'user', content: userInput }
@@ -26,7 +34,7 @@ export default function Home() {
         })
       });
 
-      const data = await res.json();
+     
 
       if (data.choices && data.choices.length > 0) {
         setResponse(data.choices[0].message.content);
